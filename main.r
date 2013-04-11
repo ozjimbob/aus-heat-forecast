@@ -5,10 +5,10 @@ library(mgcv)
 library(gstat)
 
 # Load raster of 95th percentile average daily temperature
-
+temp95=raster("temp95.tif")
 # Load in mean daily temperature for previous 30 days
 dnow=as.Date(Sys.time())
-g=seq(1:3)
+g=seq(1:30)
 dnow=dnow-g
 dnow=format(dnow,"%Y%m%d")
 f_max_list=paste("http://www.bom.gov.au/web03/ncc/www/awap/temperature/maxave/daily/grid/0.05/history/nat/",dnow,dnow,".grid.Z",sep="")
@@ -64,30 +64,38 @@ coordinates(st_locs)=c("lon","lat")
 forcast=read.csv("ftp://ftp2.bom.gov.au/anon/gen/fwo/IDY02122.dat",skip=3,na.strings="-9999.0")
 forcast=subset(forcast,!is.na(forcast$per))
 forcast$temp = (forcast$amax + forcast$amin)/2
-
-for(dx in 1:7){
+nowtemp=list()
+for(dx in 1:3){
   forcast_d = subset(forcast,per==dx)
   st_locs$temp = forcast_d$temp
   in_vec=coordinates(st_locs)[,1] > 112.5 & coordinates(st_locs)[,1] < 155.8 & coordinates(st_locs)[,2] > -44.5 & coordinates(st_locs)[,2]< 9.6 
-  st_locs=st_locs[in_vec,]
-  st_locs=subset(st_locs,!is.na(st_locs$temp))
+  st_locs2=st_locs[in_vec,]
+  st_locs2=subset(st_locs2,!is.na(st_locs2$temp))
   
   xy <- data.frame(xyFromCell(mean_temp, 1:ncell(mean_temp)))
-  v<-variogram(temp~1,st_locs)
+  v<-variogram(temp~1,st_locs2)
   m<-fit.variogram(v,vgm(1,"Sph",200,1))
-  kr=gstat(NULL,"temp",temp~1,data=st_locs,model=m)
+  kr=gstat(NULL,"temp",temp~1,data=st_locs2,model=m)
 
   temp.op = mean_temp
   coordinates(xy)=c("x","y")
-  proj4string(xy)="+proj=longlat +datum=WGS84"
+  #proj4string(xy)="+proj=longlat +datum=WGS84"
   kr.p=predict(kr,newdata=xy)
-  proj4string(temp.op)="+proj=longlat +datum=WGS84"
+  #proj4string(temp.op)="+proj=longlat +datum=WGS84"
   values(temp.op) = as.vector(kr.p@data$temp.pred)
-  diff_ac=temp.op-mean_temp
-  one_ac=temp.op
-  values(one_ac)=1
-  diff_ac=max(one_ac,diff_ac)
+  nowtemp[[dx]]=temp.op
 }
 
+nowtemp = brick(nowtemp)
+nowtemp = mean(nowtemp)
+
+diff_ac=nowtemp-mean_temp
+one_ac=nowtemp
+values(one_ac)=1
+diff_ac=max(one_ac,diff_ac)
+
+diff_lt = nowtemp - temp95
+EHF = diff_lt * diff_ac
 
 # Produce output maps
+plot(EHF)
