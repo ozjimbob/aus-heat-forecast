@@ -108,5 +108,7 @@ diff_lt = nowtemp - temp95
 EHF = diff_lt * diff_ac
 EHF= mask(EHF,aus)
 # Produce output maps
+png("EHF_map.png",1200,1200)
 plot(EHF,main="Heat Index Forecast",col=colorRampPalette(c("blue","green","yellow","orange","red"))(100))
 plot(aus, add=T)
+dev.off()
