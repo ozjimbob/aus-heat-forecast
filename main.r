@@ -5,10 +5,13 @@ library(mgcv)
 library(gstat)
 
 # Load raster of 95th percentile average daily temperature
-temp95=raster("temp95.tif")
+temp95=raster("avt95.tif")
+
+# Load australia shape
+aus = readShapePoly("aus.shp")
 # Load in mean daily temperature for previous 30 days
 dnow=as.Date(Sys.time())
-g=seq(1:30)
+g=2:30
 dnow=dnow-g
 dnow=format(dnow,"%Y%m%d")
 f_max_list=paste("http://www.bom.gov.au/web03/ncc/www/awap/temperature/maxave/daily/grid/0.05/history/nat/",dnow,dnow,".grid.Z",sep="")
@@ -67,7 +70,14 @@ forcast$temp = (forcast$amax + forcast$amin)/2
 nowtemp=list()
 for(dx in 1:3){
   forcast_d = subset(forcast,per==dx)
-  st_locs$temp = forcast_d$temp
+  forcast_d$stn.7.=as.numeric(as.character(forcast_d$stn.7.))
+  for(dx2 in seq_along(st_locs)){
+    this.temp=subset(forcast_d,forcast_d$stn.7.==st_locs$bom_st[dx2])$temp[1]
+    print(st_locs$bom_st[dx2])
+    print(this.temp)
+    st_locs$temp[dx2]=this.temp
+  }
+  #st_locs$temp = forcast_d$temp
   in_vec=coordinates(st_locs)[,1] > 112.5 & coordinates(st_locs)[,1] < 155.8 & coordinates(st_locs)[,2] > -44.5 & coordinates(st_locs)[,2]< 9.6 
   st_locs2=st_locs[in_vec,]
   st_locs2=subset(st_locs2,!is.na(st_locs2$temp))
@@ -96,6 +106,7 @@ diff_ac=max(one_ac,diff_ac)
 
 diff_lt = nowtemp - temp95
 EHF = diff_lt * diff_ac
-
+EHF= mask(EHF,aus)
 # Produce output maps
-plot(EHF)
+plot(EHF,main="Heat Index Forecast",col=colorRampPalette(c("blue","green","yellow","orange","red"))(100))
+plot(aus, add=T)
