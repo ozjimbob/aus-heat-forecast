@@ -4,6 +4,7 @@ library(maptools)
 library(raster)
 library(mgcv)
 library(gstat)
+library(caTools)
 
 st_root="G:\\SILO_Data\\complete_stations\\"
 o_path="G:\\heat\\"
@@ -40,12 +41,14 @@ for(the_file in seq_along(files)){
   
   pos=data$EHF[data$EHF>0]
   thr=quantile(pos,0.85)
-  min_95=quantile(data$t_min,0.95)
-  min_99=quantile(data$t_min,0.99)
-  max_95=quantile(data$t_max,0.95)
-  max_99=quantile(data$t_max,0.99)
-  mean_95=quantile(data$t_mean,0.95)
-  mean_99=quantile(data$t_mean,0.99)
+  
+  
+  min_95=quantile(runmean(data$t_min,3),0.95)
+  min_99=quantile(runmean(data$t_min,3),0.99)
+  max_95=quantile(runmean(data$t_max,3),0.95)
+  max_99=quantile(runmean(data$t_max,3),0.99)
+  mean_95=quantile(runmean(data$t_mean,3),0.95)
+  mean_99=quantile(runmean(data$t_mean,3),0.99)
   
   o_vec=c(station,thr,min_95,min_99,max_95,max_99,mean_95,mean_99)
   out_frame=rbind(out_frame,o_vec)
@@ -75,7 +78,9 @@ for(dx2 in seq_along(st_locs)){
 }
 
 st_locs=subset(st_locs,!is.na(st_locs$EHF))
+st_locs=subset(st_locs,st_locs$bom_st!=94087)
 in_vec=coordinates(st_locs)[,1] > 112.5 & coordinates(st_locs)[,1] < 155.8 & coordinates(st_locs)[,2] > -44.5 & coordinates(st_locs)[,2]< 9.6 
+
 st_locs2=st_locs[in_vec,]
 
 temp95=raster("avt95.tif")
@@ -90,4 +95,4 @@ coordinates(xy)=c("x","y")
 kr.p=predict(kr,newdata=xy)
 values(temp.op) = as.vector(kr.p@data$EHF.pred)
 
-writeRaster(temp.op,"EHF_threshold.tif",format="GTiff")
+writeRaster(temp.op,"EHF_threshold.tif",format="GTiff",overwrite=T)
