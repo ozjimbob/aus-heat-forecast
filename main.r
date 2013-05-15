@@ -137,3 +137,13 @@ plot(zones,main="Heat Wave Threshold Multiplier",col=colorRampPalette(c("green",
 plot(aus, add=T)
 dev.off()
 
+hw_stats_v=extract(pos,st_locs2)
+st_locs2$hw=hw_stats_v
+
+m_stats_v=extract(zones,st_locs2)
+st_locs2$mul=m_stats_v
+
+st_data=st_locs2@data
+
+hw_stations=subset(st_data,hw==1)
+mul_stations=subset(st_data,mul>=1)
