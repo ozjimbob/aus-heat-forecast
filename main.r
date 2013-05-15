@@ -3,7 +3,7 @@ library(maptools)
 library(raster)
 library(mgcv)
 library(gstat)
-
+setInternet2(use=F)
 # Load raster of 95th percentile average daily temperature
 temp95=raster("avt95.tif")
 
@@ -19,9 +19,9 @@ f_min_list=paste("http://www.bom.gov.au/web03/ncc/www/awap/temperature/minave/da
 
 rstore=list()
 for(idx in seq_along(f_max_list)){
-  print(idx)
+ # print(idx)
   tempfile=paste("tempm",idx,".Z",sep="")
-  download.file(f_max_list[idx],tempfile)
+  download.file(f_max_list[idx],tempfile,mode="wb")
   cmd=paste("gunzip ",tempfile,sep="")
   system(cmd)
   rasterfile=paste("tempm",idx,sep="")
@@ -35,16 +35,16 @@ mean_max = mean(rstore)
 rstore <- NULL
 gc()
 
-system("rm temp*")
+unlink("temp*")
 
 rstore=list()
 for(idx in seq_along(f_min_list)){
-  print(idx)
-  tempfile=paste("tempm",idx,".Z",sep="")
-  download.file(f_min_list[idx],tempfile)
+  #print(idx)
+  tempfile=paste("tempx",idx,".Z",sep="")
+  download.file(f_min_list[idx],tempfile,mode="wb")
   cmd=paste("gunzip ",tempfile,sep="")
   system(cmd)
-  rasterfile=paste("tempm",idx,sep="")
+  rasterfile=paste("tempx",idx,sep="")
   thisrast=raster(rasterfile)
   readAll(thisrast)
   rstore[[idx]]=thisrast
@@ -55,7 +55,7 @@ mean_min = mean(rstore)
 rstore <- NULL
 gc()
 
-system("rm temp*")
+unlink("temp*")
 
 mean_temp = (mean_max + mean_min) / 2
 
@@ -73,8 +73,8 @@ for(dx in 1:3){
   forcast_d$stn.7.=as.numeric(as.character(forcast_d$stn.7.))
   for(dx2 in seq_along(st_locs)){
     this.temp=subset(forcast_d,forcast_d$stn.7.==st_locs$bom_st[dx2])$temp[1]
-    print(st_locs$bom_st[dx2])
-    print(this.temp)
+    #print(st_locs$bom_st[dx2])
+    #print(this.temp)
     st_locs$temp[dx2]=this.temp
   }
   #st_locs$temp = forcast_d$temp
@@ -112,3 +112,19 @@ png("EHF_map.png",1200,1200)
 plot(EHF,main="Heat Index Forecast",col=colorRampPalette(c("blue","green","yellow","orange","red"))(100))
 plot(aus, add=T)
 dev.off()
+
+thresh=raster("EHF_threshold.tif")
+values(thresh)[values(thresh<1)]=1
+
+zones=EHF/thresh
+
+values(zones)[values(zones<=1)]=0
+values(zones)[values(zones>1) & values(zones<=2)]=1
+values(zones)[values(zones>2) & values(zones<=3)]=2
+values(zones)[values(zones>3)]=3
+
+png("EHF_zones.png",1200,1200)
+plot(zones,main="Heat Wave Category",col=colorRampPalette(c("green","yellow","orange","red"))(4))
+plot(aus, add=T)
+dev.off()
+
