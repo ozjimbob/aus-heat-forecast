@@ -147,3 +147,5 @@ st_data=st_locs2@data
 
 hw_stations=subset(st_data,hw==1)
 mul_stations=subset(st_data,mul>=1)
+
+
