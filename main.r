@@ -113,6 +113,15 @@ plot(EHF,main="Heat Index Forecast",col=colorRampPalette(c("blue","green","yello
 plot(aus, add=T)
 dev.off()
 
+pos=EHF
+values(pos)[values(pos<=0)]=0
+values(pos)[values(pos>0)]=1
+
+png("EHF_positive.png",1200,1200)
+plot(pos,main="Heat Wave EHF Positive",col=colorRampPalette(c("white","red"))(2))
+plot(aus, add=T)
+dev.off()
+
 thresh=raster("EHF_threshold.tif")
 values(thresh)[values(thresh<1)]=1
 
@@ -124,7 +133,7 @@ values(zones)[values(zones>2) & values(zones<=3)]=2
 values(zones)[values(zones>3)]=3
 
 png("EHF_zones.png",1200,1200)
-plot(zones,main="Heat Wave Category",col=colorRampPalette(c("green","yellow","orange","red"))(4))
+plot(zones,main="Heat Wave Threshold Multiplier",col=colorRampPalette(c("green","yellow","orange","red"))(4))
 plot(aus, add=T)
 dev.off()
 
