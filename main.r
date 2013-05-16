@@ -143,16 +143,32 @@ plot(zones,main="Heat Wave Threshold",col=colorRampPalette(c("yellow","orange","
 plot(aus, add=T)
 dev.off()
 
-hw_stats_v=extract(pos,st_locs2)
+hw_stats_v=extract(zones,st_locs2)
 st_locs2$hw=hw_stats_v
-
-m_stats_v=extract(zones,st_locs2)
-st_locs2$mul=m_stats_v
 
 st_data=st_locs2@data
 
-hw_stations=subset(st_data,hw==1)
-mul_stations=subset(st_data,mul>=1)
+hw_stations=subset(st_data,!is.na(hw))
 
 
+output=c()
+output=c(output,"<h1>Locations with heat wave forecast</h1>")
+### Cycle through heatwave stations
+statelist = unique(hw_stations$state)
+for(thestate in statelist){
+  output=c(output,paste("<h2>",thestate,"</h2>"),"<br />\n")
+  state_sub=subset(hw_stations,state==thestate)
+  loclist=paste(state_sub$bom_name,"<br />\n")
+  output=c(output,loclist)
+}
 
+output=c(output,"<h2>Locations with extreme/severe heatwaves forecast</h1>")
+hw_stations=subset(st_data,hw>0)
+### Cycle through heatwave stations
+statelist = unique(hw_stations$state)
+for(thestate in statelist){
+  output=c(output,paste("<h2>",thestate,"</h2>"),"<br />\n")
+  state_sub=subset(hw_stations,state==thestate)
+  loclist=paste(state_sub$bom_name,"<br />\n")
+  output=c(output,loclist)
+}
