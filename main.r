@@ -107,9 +107,12 @@ diff_ac=max(one_ac,diff_ac)
 diff_lt = nowtemp - temp95
 EHF = diff_lt * diff_ac
 EHF= mask(EHF,aus)
+
+
 # Produce output maps
-png("EHF_map.png",1200,1200)
-plot(EHF,main="Heat Index Forecast",col=colorRampPalette(c("blue","green","yellow","orange","red"))(100))
+png("output//EHF_map.png",1200,1200)
+par(mai=c(0.6,0.6,1,0.6))
+plot(EHF,main="Heat Index Forecast",col=colorRampPalette(c("blue","green","yellow","orange","red"))(100),horizontal=T)
 plot(aus, add=T)
 dev.off()
 
@@ -117,10 +120,10 @@ pos=EHF
 values(pos)[values(pos<=0)]=0
 values(pos)[values(pos>0)]=1
 
-png("EHF_positive.png",1200,1200)
-plot(pos,main="Heat Wave EHF Positive",col=colorRampPalette(c("white","red"))(2))
-plot(aus, add=T)
-dev.off()
+#png("output//EHF_positive.png",1200,1200)
+#plot(pos,main="Heat Wave EHF Positive",col=colorRampPalette(c("white","red"))(2))
+#plot(aus, add=T)
+#dev.off()
 
 thresh=raster("EHF_threshold.tif")
 values(thresh)[values(thresh<1)]=1
@@ -132,8 +135,11 @@ values(zones)[values(zones>1) & values(zones<=2)]=1
 values(zones)[values(zones>2) & values(zones<=3)]=2
 values(zones)[values(zones>3)]=3
 
-png("EHF_zones.png",1200,1200)
-plot(zones,main="Heat Wave Threshold Multiplier",col=colorRampPalette(c("green","yellow","orange","red"))(4))
+values(zones)[values(pos)==0]=NA
+
+png("output//EHF_zones.png",1200,1200)
+par(mai=c(0.6,0.6,1,0.6))
+plot(zones,main="Heat Wave Threshold",col=colorRampPalette(c("yellow","orange","red","purple"))(4),breaks=c(0,1,2,3,4),lab.breaks=c("None","Heatwave","Severe","Extreme","Extreme"),horizontal=T)
 plot(aus, add=T)
 dev.off()
 
@@ -147,5 +153,6 @@ st_data=st_locs2@data
 
 hw_stations=subset(st_data,hw==1)
 mul_stations=subset(st_data,mul>=1)
+
 
 
