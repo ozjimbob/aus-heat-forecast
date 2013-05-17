@@ -64,7 +64,8 @@ st_locs=read.csv("ftp://ftp2.bom.gov.au/anon/gen/fwo/IDY02126.dat",skip=1,col.na
 coordinates(st_locs)=c("lon","lat")
 
 # Load numerical forecast data
-forcast=read.csv("ftp://ftp2.bom.gov.au/anon/gen/fwo/IDY02122.dat",skip=3,na.strings="-9999.0")
+#Run at 8am, will do for the following 3 days and produce the result prior to 9am (AEST Time)
+forcast=read.csv("ftp://ftp2.bom.gov.au/anon/gen/fwo/IDY02123.dat",skip=3,na.strings="-9999.0")
 forcast=subset(forcast,!is.na(forcast$per))
 forcast$temp = (forcast$amax + forcast$amin)/2
 nowtemp=list()
