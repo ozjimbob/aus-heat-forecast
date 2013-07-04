@@ -5,7 +5,8 @@ stations=list("Hobart"=94029,
               "Launceston"=91237,
               "Burnie"=91009,
               "Swansea"=92038,
-              "Queenstown"=97091)
+              "Queenstown"=97091,
+              "Alice"=15540)
 
 o_path="G:\\heat\\"
 threshold_frame=read.csv("station_EHF_thresholds.csv")
@@ -31,4 +32,14 @@ plot_station=function(select_station){
   abline(h=threshold,col="green")
   abline(h=threshold*2,col="orange")
   abline(h=threshold*3,col="red")
+}
+
+google_plot_station=function(select_station){
+  require(googleVis)
+  data=get_station_data(select_station)
+  threshold=get_threshold(select_station)
+  station_name=names(stations[select_station])
+  data=data[(length(data$EHF)-1000):(length(data$EHF)),]
+  out=gvisAnnotatedTimeLine(data,datevar="c_date",numvar="EHF",date.format="%Y-%m-%d")
+  out
 }
